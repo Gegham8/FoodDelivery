@@ -16,14 +16,14 @@ const messages = {
     emailAlreadyUsed : 'Email is already used',
     invalidEmail : 'Invalid email address',
     invalidId : 'Invalid id',
-    ivalidEmailOrPassword : 'Invalid username or password',
+    invalidEmailOrPassword : 'Invalid username or password',
     userUpdatedSuccessfully : 'User was updated successfully',
     userSuccessfullyRegistered : 'User was successfully registered.Please click the activation link we sent to your email',
     activateAccount : 'Please check your email address to activate your account',
     incorrectHash : 'Incorrect hash',
     accountActivated : 'Account was successfully activated',
     imageIsNotDefine : 'Image is not defined',
-    notAllowed : 'Not allowed to get all users',
+    notAllowed : 'Not allowed',
     loginForInformation : 'Please login for get information',
     activatePasswordLink : 'Please  check your email address for change your password',
     resetIsReady : 'You can already reset your password',
@@ -32,8 +32,14 @@ const messages = {
     foodAddSuccess : 'Your food was added successfully',
     noFoodExists : 'Does not exist any food',
     foodIsNotFound : 'The food is not found',
-    foodUpdatedSuccess : ' was updated successfully'
-}
+    foodUpdatedSuccess : ' was updated successfully',
+    foodDeletedSuccess : ' The food was deleted successfully',
+    pleaseFirstAddCategory : 'Please first add a category for your product',
+    categoryAlreadyExists : 'Category already exists',
+    categoryAddSuccess : 'Category added successfully',
+    categoryDeletedSuccess : 'Category deleted successfully',
+    noCategoryExists : 'Does not exist any category'
+}   
 
 
 module.exports = {

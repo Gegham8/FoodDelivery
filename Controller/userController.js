@@ -1,34 +1,41 @@
 const config = require('../Config/constants');
-require('dotenv').config();
 const userService = require('../Services/userService');
-const helper = require('../Helper/helper');
 
-const getAllUsers = async function (req, res) {
+const getAllUsersData = async function (req, res) {
     try {
-        res.send(await userService.getAllUsers())
-    }catch(e) {
+        res.send(await userService.getAllUsersData())
+    } catch(e) {
         res.status(config.statusCode.conflict).send({ message: e.message });
     }
 }
 
-const singleUser = async function (req, res) {
+const getSingleUserData = async function (req, res) {
     try {
-        res.send(await userService.singleUser(req.params.id))
-    }catch(e) {
+        res.send(await userService.getSingleUserData(req.params.id))
+    } catch(e) {
         res.status(config.statusCode.conflict).send({ message: e.message });
     }
 }
 
-const update = async function (req, res) {
+const updateUserData = async function (req, res) {
     try {
-        res.send( await userService.update(req.body, req.file));
-    }catch (e) {
-        res.status(config.statusCode.conflict).send({ message: e });
+        res.send( await userService.updateUserData(req.headers.authorization, req.params.id, req.body, req.file));
+    } catch (e) {
+        res.status(config.statusCode.conflict).send({ message: e.message });
+    }
+}
+
+const changePassword = async function (req, res) {
+    try {
+        res.send( await userService.changePassword(req.headers.authorization,req.params.id,  req.body));
+    } catch (e) {
+        res.status(config.statusCode.conflict).send({ message: e.message });
     }
 }
 
 module.exports = {
-    getAllUsers,
-    singleUser,
-    update
+    getAllUsersData,
+    getSingleUserData,
+    updateUserData,
+    changePassword
 };

@@ -1,4 +1,3 @@
-// anun chap gin qanak
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 mongoose.set('strictQuery', false);
@@ -6,11 +5,11 @@ mongoose.set('strictQuery', false);
 const foodSchema = new Schema ({
     name : {
         type : String,
-        required : true
+        required : true,
+        unique : true
     },
     size : {
         type : String,
-        required : true
     },
     price : {
         type : String,
@@ -21,6 +20,10 @@ const foodSchema = new Schema ({
     },
     avatar : {
         type : String
+    },
+    category : {
+        type : String,
+        required : true
     }
 });
 

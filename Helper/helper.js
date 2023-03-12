@@ -1,29 +1,8 @@
 const User = require('../Models/userModel');
 const nodemailer = require('nodemailer');
-const config = require('../Config/constants')
 const fs = require('fs');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
-async function isAdmin (req, res, next) {
-    try {
-    if (req.headers.authorization) {
-        const user = jwt.verify(
-            req.headers.authorization.split(' ')[1],
-            process.env.ACCESS_TOKEN_SECRET
-        )
-        if (user && user.role === 'admin') {
-            next();
-        }else {
-            res.send(config.messages.notAllowed)
-        }
-    }else {
-        res.send(config.messages.loginForInformation)
-    }} catch(err) {
-        res.status(config.statusCode.unauthorized).json({ message : config.messages.unauthorized });
-    }
-}
 
 const sendemail = async (payload, url) => {
     const transporter =  {
@@ -45,32 +24,20 @@ const sendemail = async (payload, url) => {
     };
     code.sendMail(mailDetails, err => {
         if (err) {
-            throw err;
-        }else {
-            console.log('gnac');
+            throw new Error(err);
         }
      });
 }
 
-async function deleteImage(imagePath){
-    fs.unlinkSync(path.join(__dirname,'../', imagePath));
-}
-
-const dublicateEmail =  async (req, res, next) => {
-    const user = await User.findOne({ email: req.body.email });
-    if (user){ 
-        if (req.file){
-            await deleteImage(req.file.path);
-        }
-        res.status(config.statusCode.conflict).json({ error : config.messages.emailAlreadyUsed }); 
-    }else {
-        next();
+async function deleteImage(email, imagePath){
+    const user = await User.findOne({ email: email });
+    if (user && (user.avatar !== undefined) && (fs.existsSync(imagePath))) {
+        fs.unlinkSync(path.join(__dirname,'../', imagePath));
     }
 }
 
+
 module.exports = {
     sendemail,
-    isAdmin,
-    dublicateEmail,
     deleteImage
 }

@@ -1,50 +1,57 @@
 const foodService = require('../Services/foodService');
-const config = require('../Config/constants');
 const helper = require('../Helper/helper');
 require('dotenv').config();
 
 
-const add = async function (req, res) {
-    try{
-        res.send (await foodService.add(req.body, req.file));
-    }catch(e){
-        if (req.file){
-            helper.deleteImage(req.file.path)
+const addFoodData = async function (req, res) {
+    try {
+        res.send (await foodService.addFoodData(req.body, req.file));
+    } catch(e) {
+        if (req.file) {
+            helper.deleteImage(req.body.email, req.file.path)
         }
-        res.json({ message : e})
+        res.json({ message : e.message })
     }
 }
 const getAllFoods = async function(req, res) {
     try {
+        console.log(req.body)
         res.send (await foodService.getAllFoods());
-    }catch(e) {
-        res.json( { message : e})
+    } catch(e) {
+        res.json( { message : e.message })
     }
 }
 
 const singleFood = async function (req, res) {
     try {
-        res.send (await foodService.singleFood(req.params.id));
-    }catch(e) {
-        res.json( { message : e })
+        res.send (await foodService.singleFoodData(req.params.id));
+    } catch(e) {
+        res.json( { message : e.message })
     }
 }
-const updateFood = async function (req, res) {
+const updateFoodData = async function (req, res) {
     try {
-        console.log('ste');
-        res.send (await foodService.updateFood(req.body, req.file))
-    }catch (e) {
+        res.send (await foodService.updateFoodData(req.params.id, req.body, req.file))
+    } catch (e) {
         if (req.file){
-            helper.deleteImage(req.file.path)
+            helper.deleteImage(req.body.email, req.file.path);
         }
-        res.json( { message : e })
+        res.json( { message : e.message })
     }
+}
 
+const deleteFoodData = async function (req, res) {
+    try {
+        res.send (await foodService.deleteFoodData(req.params.id))
+    } catch (e) {
+        res.json( { message : e.message })
+    }
 }
 
 module.exports = {
-    add,
+    addFoodData,
     singleFood,
     getAllFoods,
-    updateFood,
+    updateFoodData,
+    deleteFoodData
 }

@@ -6,7 +6,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const register =  async function (payload, file) {
+const register =  async function (payload, file) {    
+    const email = await User.findOne({ email: payload.email})
+    if (email) {
+        if (file)
+        {
+            helper.deleteImage(payload.email, file.path);
+            throw new Error(messages.emailAlreadyUsed);
+        }
+    }
+
     const hashPass = await bcrypt.hash(payload.password, 10);
     const genereatedHash =  tokenAuth.generateHash(payload.email);
     let user = new User ({
@@ -16,10 +25,9 @@ const register =  async function (payload, file) {
         avatar : file? file.path : undefined,
         password : hashPass,
         active : genereatedHash,
-        role : payload.role ? payload.role : 'user'
     })
-    const url = `${process.env.FRONT_URL}/active?hash=${genereatedHash}`;
-    // await helper.sendemail(user.email, url);
+    const url = `${process.env.FRONT_URL}/api/auth/active?hash=${genereatedHash}`;
+    await helper.sendemail(user.email, url);
     await user.save();
     return messages.userSuccessfullyRegistered;
 }
@@ -28,79 +36,70 @@ const login = async function (payload) {
     const { email, password } = payload;
     const user = await User.findOne({ email : email });
     if (!user){ 
-        throw messages.ivalidEmailOrPassword
+        throw new Error(messages.invalidEmailOrPassword);
+    }
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword){
+        throw new Error(messages.invalidEmailOrPassword)
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword){ 
-        throw messages.ivalidEmailOrPassword
-    }
     if (user.active !== '1'){
-        throw messages.activateAccount;
+        throw new Error(messages.activateAccount);
     }
     let token = tokenAuth.generateAccessToken(user.email, user.role, user._id);
     return  token;
 }
 
 const active = async function (payload) {
-    const hash = User.findOne({ active : payload });
+    const hash = await User.findOne({ active : payload });
     const verifyToken = tokenAuth.verify(payload);
     if (!hash || !verifyToken) {
-        return messages.incorrectHash;
+        throw new Error(messages.incorrectHash);
     }
     await User.findOneAndUpdate( { active : payload }, {$set : { active : '1'} }, { upsert : true}) ;
     return messages.accountActivated;
 }
 
-const forgotPassword = async function (payload) {
-    const account = await User.findOne ({ email : payload }) 
-    if (account) { // && account.active === 1
+const forgotPassword = async function (email) {
+    const account = await User.findOne ({ email : email }) 
+    if (account && account.active === 1) {  
         const genereatedHash = tokenAuth.generateHash(account.email);
-        const url = `${process.env.FRONT_URL}/password?hash=${genereatedHash}`;
+        const url = `${process.env.FRONT_URL}/api/auth/resetPassword?hash=${genereatedHash}`;
         helper.sendemail(account.email, url);
         account.hash = genereatedHash;
+        
         await account.save();
-
-        return messages.activatePasswordLink
+        return messages.activatePasswordLink;
     } else {
-        throw messages.invalidEmail;
+        throw new Error (messages.invalidEmail);
     }              
 }
 
-const password = async function (hash){
-    const hashUser = jwt.verify(hash, process.env.SECRET_KEY);
-    if (hashUser) {
-        const user = await User.findOne({ email : hashUser.email });
-        if (user) {
-            await User.findOneAndUpdate( { hash : hash }, {$set : { hash : '1'} }, { upsert : true}) ;
-            return messages.resetIsReady;
-        } else {
-            throw messages.invalidEmail;
-        }
-    } else {
-        throw messages.incorrectHash;
+const resetPassword = async function (payload, hash){    
+    const user = await User.findOne ({ hash : hash });
+    if (!user) {
+        throw new Error (messages.userNotFound);
     }
-}
 
-const reset = async function (payload) {
-    const { password, confirm, email } = payload;
-    const user = await User.findOne({ email: email });
-    if (user) {
-        if (user.hash === '1') {
-        if (password === confirm){
-            user.password = await bcrypt.hash(payload.password, 10);
-            user.hash = tokenAuth.generateHash(payload.email);
-            await user.save();
-        } else {
-            throw messages.passwordsDontMatch
-        }
-    }else {
-        throw messages.incorrectHash;
+    const hashUser = jwt.verify(hash, process.env.SECRET_KEY);
+    if (!hashUser) {
+        throw new Error (messages.incorrectHash);
     }
-    }else {
-        throw messages.userNotFound;
+        
+    const update_user = await User.findOne({ email : hashUser.email });
+    if (!update_user) {
+        throw new Error (messages.invalidEmail);
     }
-    throw messages.passwordChangeSuccess
+
+    const { password, confirm } = payload;
+    if (password !== confirm) {
+        throw new Error (messages.passwordsDontMatch)
+    }
+
+    user.password = await bcrypt.hash(payload.password, 10);
+    user.hash = '';
+    await user.save();
+    return  messages.passwordChangeSuccess;
 }
 
 module.exports = {
@@ -108,6 +107,5 @@ module.exports = {
     login,
     active,
     forgotPassword,
-    password,
-    reset
+    resetPassword,
 }

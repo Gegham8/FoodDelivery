@@ -22,8 +22,7 @@ let foodUpload = multer({
         ){
             cb(null,true);
         }else {
-            console.log('Only jpg, png, jpeg files are supported') // poxel vor res.send ani 
-            cb(null,false);
+            return cb(new Error('Only jpg, png, jpeg files are supported'));    
         }
     },
         limits : {

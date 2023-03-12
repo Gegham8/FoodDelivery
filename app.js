@@ -12,10 +12,11 @@ app.use(cors());
 const UserRouter = require('./Router/userRouter');
 const ActiveRouter = require('./Router/authRouter');
 const FoodRouter = require('./Router/foodRouter');
+const CategoryRouter = require('./Router/categoryRouter');
+
+
 app.use(express.static(path.join(__dirname, 'Uploads')));
 app.use(express.static(path.join(__dirname, 'FoodPic')));
-
-
 
 
 mongoose
@@ -28,10 +29,11 @@ mongoose
     })
     .catch(err => console.log(err));
 
-app.use('/', UserRouter)
-app.use('/', ActiveRouter);
-app.use('/' , FoodRouter);
-
-app.listen(process.env.PORT, () => {
-    console.log(`listening on port ${process.env.PORT}`)
+app.use('/api/users', UserRouter)
+app.use('/api/auth', ActiveRouter);
+app.use('/api/foods' , FoodRouter);
+app.use('/api/category', CategoryRouter);
+const PORT = process.env.PORT || 5000
+app.listen(PORT, () => {
+    console.log(`listening on port ${PORT}`)
 })
