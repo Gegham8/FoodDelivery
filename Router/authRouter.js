@@ -11,7 +11,7 @@ router.post('/register',
     function(req, res, next) { 
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
-            helper.deleteImage(req.file, req.file.path);
+            helper.deleteImage(req.body.email, req.file.path);
             return res.json ({message : err.message});
         } else if (err) {
             return  res.json({ message : err.message });
